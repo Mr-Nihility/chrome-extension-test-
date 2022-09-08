@@ -61,16 +61,26 @@ async function handleInput(evt) {
     evt.target.insertAdjacentHTML('beforebegin', popup);
     // console.dir(evt.target.parentNode.innerHTML);
     // console.dir(evt.target.previousElementSibling);
+    let popupElement = evt.target.previousElementSibling;
+    handleChoose(popupElement);
   }
 }
 
 function createPopup(arr) {
   let markup = `<div  class="suggestionWrap">`;
   markup += arr
-    .map((item, i) => {
+    .map((item) => {
       return `<span id="${item}" class="itemSuggestionWrap">${item}</span>`;
     })
     .join('');
 
   return (markup += `</div>`);
+}
+
+function handleChoose(element) {
+  element.addEventListener('click', handleClickOnSpan);
+}
+
+function handleClickOnSpan(evt) {
+  console.log(evt.target.textContent);
 }
