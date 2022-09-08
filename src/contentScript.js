@@ -41,23 +41,26 @@
 //   sendResponse({});
 //   return true;
 // });
+
 var spelling = require('../node_modules/spelling/index'),
   dictionary = require('../node_modules/spelling/dictionaries/en_US.js');
 
-var dict = new spelling(dictionary);
+class Handler {
+  constructor() {
+    this.arr = [];
+  }
 
-const colectionInputs = [...document.getElementsByTagName('input')];
-
-colectionInputs.forEach((el) => el.addEventListener('input', handleInput));
-
-async function handleInput(evt) {
-  if (evt.data === ' ') {
+  handleInput(evt) {
+    if (evt.data !== ' ') return;
+    console.log(this);
     const arrWords = evt.target.value.trim().split(' ');
 
-    let a = await dict.search(arrWords[arrWords.length - 1], { depth: 3 });
-    let suggestions = a.map(({ word }) => word);
-    console.log(suggestions);
-    let popup = createPopup(suggestions.slice(0, 3));
+    let suggestionsArr = dict.search(arrWords[arrWords.length - 1], {
+      depth: 3,
+    });
+    let suggestionsWordsArr = suggestionsArr.map(({ word }) => word);
+    console.log(suggestionsWordsArr);
+    let popup = createPopup(suggestionsWordsArr.slice(0, 3));
     evt.target.insertAdjacentHTML('beforebegin', popup);
     // console.dir(evt.target.parentNode.innerHTML);
     // console.dir(evt.target.previousElementSibling);
@@ -65,6 +68,35 @@ async function handleInput(evt) {
     handleChoose(popupElement);
   }
 }
+const handler = new Handler();
+
+var dict = new spelling(dictionary);
+
+const colectionInputs = [...document.getElementsByTagName('input')];
+
+colectionInputs.forEach((el) =>
+  el.addEventListener('input', handler.handleInput)
+);
+
+// async function handleInput(evt) {
+//   console.log(evt);
+
+//   if (evt.data === ' ') {
+//     const arrWords = evt.target.value.trim().split(' ');
+
+//     let suggestionsArr = await dict.search(arrWords[arrWords.length - 1], {
+//       depth: 3,
+//     });
+//     let suggestionsWordsArr = suggestionsArr.map(({ word }) => word);
+//     console.log(suggestionsWordsArr);
+//     let popup = createPopup(suggestionsWordsArr.slice(0, 3));
+//     evt.target.insertAdjacentHTML('beforebegin', popup);
+//     // console.dir(evt.target.parentNode.innerHTML);
+//     // console.dir(evt.target.previousElementSibling);
+//     let popupElement = evt.target.previousElementSibling;
+//     handleChoose(popupElement);
+//   }
+// }
 
 function createPopup(arr) {
   let markup = `<div  class="suggestionWrap">`;
@@ -82,5 +114,15 @@ function handleChoose(element) {
 }
 
 function handleClickOnSpan(evt) {
+  if (evt.currentTarget === evt.target) return;
   console.log(evt.target.textContent);
 }
+
+// function logSelection(event) {
+//   const selection = event.target.value.substring(
+//     event.target.selectionStart,
+//     event.target.selectionEnd
+//   );
+// }
+
+// const input = document.querySelector('input');
