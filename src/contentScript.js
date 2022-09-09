@@ -51,6 +51,12 @@ class Handler {
     this.el = null;
     this.suggestArr = null;
     this.wordForOptions = '';
+    this.x = null;
+    this.y = null;
+  }
+  setCoordinates(x, y) {
+    this.x = x;
+    this.y = y;
   }
   setEl(el) {
     this.el = el;
@@ -97,7 +103,9 @@ class Handler {
   }
 
   renderMarkup(arr) {
-    let markup = `<div  class="suggestionWrap">`;
+    let markup = `<div  class="suggestionWrap" style="top:${
+      this.y < 50 ? this.y + 40 : this.y - 40
+    }px;left:${this.x}px" >`;
     markup += arr
       .map((item) => {
         return `<span id="${item}" class="itemSuggestionWrap">${item}</span>`;
@@ -125,10 +133,15 @@ const colectionInputs = [...document.getElementsByTagName('input')]; //colection
 
 colectionInputs.forEach((el) => {
   el.addEventListener('input', handleInput);
+  el.addEventListener('mousedown', getEventType);
 });
 
+function getEventType(e) {
+  console.log('x=', e.pageX, 'y=', e.pageY);
+  handler.setCoordinates(e.pageX, e.pageY);
+}
+
 function handleInput(evt) {
-  console.dir(evt);
   handler.setEl(evt.target);
   if (evt.data !== ' ') {
     removeListener();
@@ -143,7 +156,7 @@ function handleInput(evt) {
 
 function handleChoose(element) {
   element.addEventListener('click', handleClickOnSpan);
-  window.addEventListener('keydown', handleKeybord);
+  window.addEventListener('keyup', handleKeybord);
 }
 
 function handleClickOnSpan(evt) {
@@ -208,7 +221,7 @@ function handleKeybord(evt) {
 
 function removeListener() {
   handler.returnPopupEl()?.removeEventListener('click', handleClickOnSpan);
-  window.removeEventListener('keydown', handleKeybord);
+  window.removeEventListener('keyup', handleKeybord);
 }
 
 // function logSelection(event) {
