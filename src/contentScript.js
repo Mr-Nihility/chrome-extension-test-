@@ -105,7 +105,7 @@ class Handler {
       .join('');
 
     markup += `</div>`;
-    this.el.insertAdjacentHTML('beforebegin', markup);
+    this.el.insertAdjacentHTML('afterend', markup);
   }
 
   closePopup() {
@@ -128,10 +128,12 @@ colectionInputs.forEach((el) => {
 });
 
 function handleInput(evt) {
+  console.dir(evt);
   handler.setEl(evt.target);
   if (evt.data !== ' ') {
-    handler.closePopup();
     removeListener();
+    handler.closePopup();
+
     return;
   }
 
@@ -147,13 +149,20 @@ function handleChoose(element) {
 function handleClickOnSpan(evt) {
   if (evt.currentTarget === evt.target) return;
   handler.replaceWord(evt.target.textContent);
-  handler.closePopup();
   removeListener();
+  handler.closePopup();
 }
 function handleKeybord(evt) {
-  if (evt.keyCode === 38) {
+  let array = handler.returnPopupEl().childNodes;
+  if (evt.keyCode === 38 || evt.keyCode === 40) {
+    //up || down
     handler.looseBlur();
-    //up
+    for (let i = 0; i < array.length; i++) {
+      const node = array[i];
+      if (array[i].classList.contains('active')) {
+        node.classList.remove('active');
+      }
+    }
     handler.returnPopupEl().childNodes[0].classList.add('active');
   } else if (evt.keyCode === 39) {
     handler.looseBlur();
@@ -198,7 +207,7 @@ function handleKeybord(evt) {
 }
 
 function removeListener() {
-  handler.returnPopupEl().removeEventListener('click', handleClickOnSpan);
+  handler.returnPopupEl()?.removeEventListener('click', handleClickOnSpan);
   window.removeEventListener('keydown', handleKeybord);
 }
 
