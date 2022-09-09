@@ -44,78 +44,162 @@
 
 var spelling = require('../node_modules/spelling/index'),
   dictionary = require('../node_modules/spelling/dictionaries/en_US.js');
+var dict = new spelling(dictionary);
 
 class Handler {
   constructor() {
-    this.arr = [];
+    this.el = null;
+    this.suggestArr = null;
+    this.wordForOptions = '';
+  }
+  setEl(el) {
+    this.el = el;
+  }
+  getEl() {
+    return this.el;
   }
 
-  handleInput(evt) {
-    if (evt.data !== ' ') return;
-    console.log(this);
-    const arrWords = evt.target.value.trim().split(' ');
+  renderOptions(str) {
+    const arrWords = str.slice(0).trim().split(' ');
+    this.wordForOptions = arrWords[arrWords.length - 1];
+    this.suggestArr = dict
+      .search(this.wordForOptions, {
+        depth: 3,
+      })
+      .map(({ word }) => word)
+      .slice(0, 4);
+    this.renderMarkup(this.suggestArr);
+  }
 
-    let suggestionsArr = dict.search(arrWords[arrWords.length - 1], {
-      depth: 3,
-    });
-    let suggestionsWordsArr = suggestionsArr.map(({ word }) => word);
-    console.log(suggestionsWordsArr);
-    let popup = createPopup(suggestionsWordsArr.slice(0, 3));
-    evt.target.insertAdjacentHTML('beforebegin', popup);
-    // console.dir(evt.target.parentNode.innerHTML);
-    // console.dir(evt.target.previousElementSibling);
-    let popupElement = evt.target.previousElementSibling;
-    handleChoose(popupElement);
+  getWord() {
+    return this.wordForOptions;
+  }
+  // setSuggestArr() {
+  //   this.suggestArr = dict
+  //     .search(this.wordForOptions, {
+  //       depth: 1,
+  //     })
+  //     .map(({ word }) => word)
+  //     .slice(0, 4);
+  // }
+
+  replaceWord(selectedWord) {
+    const arrWords = this.el.value.split(' ');
+    for (let i = 0; i < arrWords.length; i++) {
+      const element = arrWords[i];
+      if (element === this.wordForOptions) {
+        let index = arrWords.lastIndexOf(this.wordForOptions);
+        arrWords.splice(index, 1, selectedWord);
+      }
+    }
+    this.el.value = arrWords.join(' ') + ' ';
+    this.el.focus();
+  }
+
+  renderMarkup(arr) {
+    let markup = `<div  class="suggestionWrap">`;
+    markup += arr
+      .map((item) => {
+        return `<span id="${item}" class="itemSuggestionWrap">${item}</span>`;
+      })
+      .join('');
+
+    markup += `</div>`;
+    this.el.insertAdjacentHTML('beforebegin', markup);
+  }
+
+  closePopup() {
+    document.querySelector('.suggestionWrap')?.remove();
+  }
+  returnPopupEl() {
+    return document.querySelector('.suggestionWrap');
+  }
+  looseBlur() {
+    this.el.blur();
   }
 }
-const handler = new Handler();
 
-var dict = new spelling(dictionary);
+const handler = new Handler(); //instance
 
-const colectionInputs = [...document.getElementsByTagName('input')];
+const colectionInputs = [...document.getElementsByTagName('input')]; //colection
 
-colectionInputs.forEach((el) =>
-  el.addEventListener('input', handler.handleInput)
-);
+colectionInputs.forEach((el) => {
+  el.addEventListener('input', handleInput);
+});
 
-// async function handleInput(evt) {
-//   console.log(evt);
+function handleInput(evt) {
+  handler.setEl(evt.target);
+  if (evt.data !== ' ') {
+    handler.closePopup();
+    removeListener();
+    return;
+  }
 
-//   if (evt.data === ' ') {
-//     const arrWords = evt.target.value.trim().split(' ');
-
-//     let suggestionsArr = await dict.search(arrWords[arrWords.length - 1], {
-//       depth: 3,
-//     });
-//     let suggestionsWordsArr = suggestionsArr.map(({ word }) => word);
-//     console.log(suggestionsWordsArr);
-//     let popup = createPopup(suggestionsWordsArr.slice(0, 3));
-//     evt.target.insertAdjacentHTML('beforebegin', popup);
-//     // console.dir(evt.target.parentNode.innerHTML);
-//     // console.dir(evt.target.previousElementSibling);
-//     let popupElement = evt.target.previousElementSibling;
-//     handleChoose(popupElement);
-//   }
-// }
-
-function createPopup(arr) {
-  let markup = `<div  class="suggestionWrap">`;
-  markup += arr
-    .map((item) => {
-      return `<span id="${item}" class="itemSuggestionWrap">${item}</span>`;
-    })
-    .join('');
-
-  return (markup += `</div>`);
+  handler.renderOptions(evt.target.value);
+  handleChoose(handler.returnPopupEl());
 }
 
 function handleChoose(element) {
   element.addEventListener('click', handleClickOnSpan);
+  window.addEventListener('keydown', handleKeybord);
 }
 
 function handleClickOnSpan(evt) {
   if (evt.currentTarget === evt.target) return;
-  console.log(evt.target.textContent);
+  handler.replaceWord(evt.target.textContent);
+  handler.closePopup();
+  removeListener();
+}
+function handleKeybord(evt) {
+  if (evt.keyCode === 38) {
+    handler.looseBlur();
+    //up
+    handler.returnPopupEl().childNodes[0].classList.add('active');
+  } else if (evt.keyCode === 39) {
+    handler.looseBlur();
+    //rigth
+    let array = handler.returnPopupEl().childNodes;
+    for (let i = 0; i < array.length; i++) {
+      const node = array[i];
+      if (array[i].classList.contains('active') && i !== array.length - 1) {
+        node.classList.remove('active');
+        node.nextElementSibling.classList.add('active');
+        break;
+      }
+    }
+  } else if (evt.keyCode === 37) {
+    handler.looseBlur();
+    //left
+    let array = handler.returnPopupEl().childNodes;
+    for (let i = 0; i < array.length; i++) {
+      const node = array[i];
+      if (array[i].classList.contains('active') && i !== 0) {
+        node.classList.remove('active');
+        node.previousElementSibling.classList.add('active');
+        break;
+      }
+    }
+  } else if (evt.keyCode === 13) {
+    //enter
+    let array = handler.returnPopupEl().childNodes;
+    for (let i = 0; i < array.length; i++) {
+      if (array[i].classList.contains('active')) {
+        console.log(array[i].textContent, handler.getWord());
+        handler.replaceWord(array[i].textContent);
+      }
+    }
+    removeListener();
+    handler.closePopup();
+  } else if (evt.keyCode === 27) {
+    //escape
+    removeListener();
+    handler.closePopup();
+  }
+}
+
+function removeListener() {
+  handler.returnPopupEl().removeEventListener('click', handleClickOnSpan);
+  window.removeEventListener('keydown', handleKeybord);
 }
 
 // function logSelection(event) {
