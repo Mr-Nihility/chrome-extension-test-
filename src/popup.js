@@ -12,14 +12,14 @@ import './popup.css';
   // https://developer.chrome.com/extensions/declare_permissions
   const counterStorage = {
     get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
+      chrome.storage.sync.get(['color'], (result) => {
+        cb(result.color);
       });
     },
     set: (value, cb) => {
       chrome.storage.sync.set(
         {
-          count: value,
+          color: value,
         },
         () => {
           cb();
@@ -29,35 +29,37 @@ import './popup.css';
   };
 
   function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
+    document.getElementById('color').innerHTML = initialValue;
 
-    document.getElementById('incrementBtn').addEventListener('click', () => {
+    document.getElementById('bgColor').addEventListener('click', (e) => {
       updateCounter({
-        type: 'INCREMENT',
+        type: 'BACKGROUND',
+        payload: e.target.value,
       });
     });
 
-    document.getElementById('decrementBtn').addEventListener('click', () => {
+    document.getElementById('textColor').addEventListener('click', (e) => {
       updateCounter({
-        type: 'DECREMENT',
+        type: 'TEXT',
+        payload: e.target.value,
       });
     });
   }
 
   function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
+    counterStorage.get((color) => {
+      let newColor;
 
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
+      if (type === 'BACKGROUND') {
+        newColor = color + 1;
+      } else if (type === 'TEXT') {
+        newColor = color - 1;
       } else {
-        newCount = count;
+        newColor = color;
       }
 
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
+      counterStorage.set(newColor, () => {
+        document.getElementById('color').innerHTML = newColor;
 
         // Communicate with content script of
         // active tab by sending a message
@@ -67,9 +69,9 @@ import './popup.css';
           chrome.tabs.sendMessage(
             tab.id,
             {
-              type: 'COUNT',
+              type: 'COLOR',
               payload: {
-                count: newCount,
+                color: newColor,
               },
             },
             (response) => {
@@ -83,14 +85,14 @@ import './popup.css';
 
   function restoreCounter() {
     // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
+    counterStorage.get((color) => {
+      if (typeof color === 'undefined') {
         // Set counter value as 0
         counterStorage.set(0, () => {
           setupCounter(0);
         });
       } else {
-        setupCounter(count);
+        setupCounter(color);
       }
     });
   }

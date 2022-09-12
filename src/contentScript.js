@@ -12,38 +12,9 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 // Log `title` of current active web page
-// const pageTitle = document.head.getElementsByTagName('title')[0].innerHTML;
-// console.log(
-//   `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-// );
-
-// // Communicate with background file by sending a message
-// chrome.runtime.sendMessage(
-//   {
-//     type: 'GREETINGS',
-//     payload: {
-//       message: 'Hello, my name is Con. I am from ContentScript.',
-//     },
-//   },
-//   (response) => {
-//     console.log(response.message);
-//   }
-// );
-
-// // Listen for message
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (request.type === 'COUNT') {
-//     console.log(`Current count is ${request.payload.count}`);
-//   }
-
-//   // Send an empty response
-//   // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-//   sendResponse({});
-//   return true;
-// });
-
 var spelling = require('../node_modules/spelling/index'),
   dictionary = require('../node_modules/spelling/dictionaries/en_US.js');
+
 var dict = new spelling(dictionary);
 
 class Handler {
@@ -54,20 +25,23 @@ class Handler {
     this.x = null;
     this.y = null;
   }
+
   setCoordinates(x, y) {
     this.x = x;
     this.y = y;
   }
+
   setEl(el) {
     this.el = el;
   }
+
   getEl() {
     return this.el;
   }
 
   renderOptions(str) {
     const arrWords = str.slice(0).trim().split(' ');
-    this.wordForOptions = arrWords[arrWords.length - 1];
+    this.wordForOptions = arrWords && arrWords[arrWords.length - 1];
     this.suggestArr = dict
       .search(this.wordForOptions, {
         depth: 3,
@@ -80,6 +54,7 @@ class Handler {
   getWord() {
     return this.wordForOptions;
   }
+
   // setSuggestArr() {
   //   this.suggestArr = dict
   //     .search(this.wordForOptions, {
@@ -90,15 +65,26 @@ class Handler {
   // }
 
   replaceWord(selectedWord) {
-    const arrWords = this.el.value.split(' ');
+    const arrWords = this.el.isContentEditable
+      ? this.el.textContent.trim().split(' ')
+      : this.el.value.trim().split(' ');
+
     for (let i = 0; i < arrWords.length; i++) {
-      const element = arrWords[i];
-      if (element === this.wordForOptions) {
-        let index = arrWords.lastIndexOf(this.wordForOptions);
-        arrWords.splice(index, 1, selectedWord);
+      const word = arrWords[i].replace(/(\r\n|\n|\r)/gm, '');
+
+      if (word === this.wordForOptions) {
+        let index = arrWords.lastIndexOf(arrWords[i]);
+        if (index !== -1) arrWords.splice(index, 1, selectedWord);
+        break;
       }
     }
-    this.el.value = arrWords.join(' ') + ' ';
+
+    if (this.el.isContentEditable) {
+      this.el.textContent = arrWords.join(' ');
+    } else {
+      this.el.value = arrWords.join(' ');
+    }
+
     this.el.focus();
   }
 
@@ -119,43 +105,83 @@ class Handler {
   closePopup() {
     document.querySelector('.suggestionWrap')?.remove();
   }
+
   returnPopupEl() {
     return document.querySelector('.suggestionWrap');
   }
+
   looseBlur() {
     this.el.blur();
   }
 }
 
-const handler = new Handler(); //instance
+// Communicate with background file by sending a message
+chrome.runtime.sendMessage(
+  {
+    type: 'GREETINGS',
+    payload: {
+      message: 'Hello, my name is Con. I am from ContentScript.',
+    },
+  },
+  (response) => {
+    console.log(response.message);
+  }
+);
 
-const colectionInputs = [...document.getElementsByTagName('input')]; //colection
+// Listen for message
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'COLOR') {
+    console.log(`Current count is ${request.payload.color}`);
+  }
 
-colectionInputs.forEach((el) => {
-  el.addEventListener('input', handleInput);
-  el.addEventListener('mousedown', getEventType);
+  // Send an empty response
+  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
+  sendResponse({});
+  return true;
 });
 
-function getEventType(e) {
-  console.log('x=', e.pageX, 'y=', e.pageY);
+const handler = new Handler(); //instance
+
+const colectionInputs = [
+  //colection
+  ...document.getElementsByTagName('input'),
+  ...document.getElementsByTagName('textarea'),
+  ...document.querySelectorAll('[contenteditable="true"]'),
+];
+
+colectionInputs.forEach((node) => {
+  node.addEventListener('input', handleInput);
+  node.addEventListener('mousedown', getCoordinates);
+
+  if (node.isContentEditable) {
+    node?.addEventListener('mouseup', getSelectedTextValue);
+  } else {
+    node.addEventListener('select', logSelection);
+  }
+});
+
+function getCoordinates(e) {
   handler.setCoordinates(e.pageX, e.pageY);
 }
 
 function handleInput(evt) {
   handler.setEl(evt.target);
+  removeListener();
+  handler.closePopup();
   if (evt.data !== ' ') {
-    removeListener();
-    handler.closePopup();
-
     return;
   }
 
-  handler.renderOptions(evt.target.value);
+  if (evt.target.isContentEditable) {
+    handler.renderOptions(evt.target.textContent);
+  } else {
+    handler.renderOptions(evt.target.value);
+  }
   handleChoose(handler.returnPopupEl());
 }
 
-function handleChoose(element) {
-  element.addEventListener('click', handleClickOnSpan);
+function handleChoose(node) {
+  node.addEventListener('click', handleClickOnSpan);
   window.addEventListener('keyup', handleKeybord);
 }
 
@@ -219,16 +245,31 @@ function handleKeybord(evt) {
   }
 }
 
+function logSelection(event) {
+  console.dir(event.target);
+  handler.setEl(event.target);
+  const selection = event.target.value.substring(
+    event.target.selectionStart,
+    event.target.selectionEnd
+  );
+
+  handler.closePopup();
+
+  handler.renderOptions(selection.trim());
+  handleChoose(handler.returnPopupEl());
+}
+
+function getSelectedTextValue(evt) {
+  handler.setEl(evt.target);
+  const { anchorNode, anchorOffset, extentOffset } = document.getSelection();
+  if (anchorOffset === extentOffset) return;
+  handler.closePopup();
+  const selection = anchorNode.data?.slice(anchorOffset, extentOffset);
+  handler.renderOptions(selection);
+  handleChoose(handler.returnPopupEl());
+}
+
 function removeListener() {
   handler.returnPopupEl()?.removeEventListener('click', handleClickOnSpan);
   window.removeEventListener('keyup', handleKeybord);
 }
-
-// function logSelection(event) {
-//   const selection = event.target.value.substring(
-//     event.target.selectionStart,
-//     event.target.selectionEnd
-//   );
-// }
-
-// const input = document.querySelector('input');
