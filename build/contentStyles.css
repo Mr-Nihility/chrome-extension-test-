@@ -1,0 +1,28 @@
+.suggestionWrap {
+ 
+  background-color: aliceblue;
+  display: flex;
+  gap: 10px;
+  position: fixed;
+  top: 35%;
+  left: 50%;
+  transform: translate( -50%);
+  border-radius: 6px;
+  z-index:10000000000;
+}
+.itemSuggestionWrap{
+   padding: 5px;
+  display: inline-block;
+  color: blueviolet;
+  transition: all 250px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.itemSuggestionWrap:hover{
+  color: #fff;
+  background-color: blueviolet;
+}
+.itemSuggestionWrap.active{
+  color: #fff;
+  background-color: blueviolet;
+}
