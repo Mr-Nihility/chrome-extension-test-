@@ -19,6 +19,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "simple-color-picker": "^1.0.5",
     "spelling": "^2.0.2"
   }
 }

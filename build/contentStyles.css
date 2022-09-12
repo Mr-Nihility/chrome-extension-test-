@@ -1,6 +1,7 @@
 .suggestionWrap {
- 
-  background-color: aliceblue;
+  --color:#8a2be2;
+  --text:aliceblue;
+  background-color: var(--text);
   display: flex;
   gap: 10px;
   position: fixed;
@@ -13,16 +14,16 @@
 .itemSuggestionWrap{
    padding: 5px;
   display: inline-block;
-  color: blueviolet;
+  color: var(--color);
   transition: all 250px;
   cursor: pointer;
   border-radius: 4px;
 }
 .itemSuggestionWrap:hover{
-  color: #fff;
-  background-color: blueviolet;
+  color: var(--text);
+  background-color: var(--color);
 }
 .itemSuggestionWrap.active{
-  color: #fff;
-  background-color: blueviolet;
+  color: var(--text);
+  background-color: var(--color);
 }

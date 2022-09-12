@@ -1,6 +1,16 @@
 'use strict';
 
 import './popup.css';
+import ColorPicker from 'simple-color-picker';
+
+const colorPicker = new ColorPicker({
+  color: '#FF0000',
+  background: '#454545',
+  el: document.getElementById('color-picker-container'),
+  width: 150,
+  height: 150,
+  // window: document.getElementById('color-picker-container').contentWindow,
+});
 
 (function () {
   // We will make use of Storage API to get and store `count` value
@@ -28,38 +38,45 @@ import './popup.css';
     },
   };
 
-  function setupCounter(initialValue = 0) {
+  function setupColor(initialValue = '#8a2be2') {
     document.getElementById('color').innerHTML = initialValue;
 
-    document.getElementById('bgColor').addEventListener('click', (e) => {
-      updateCounter({
-        type: 'BACKGROUND',
-        payload: e.target.value,
+    colorPicker.onChange((hexStringColor) => {
+      updateColor({
+        type: 'UPDATE',
+        payload: hexStringColor,
       });
+
+      // console.log(hexStringColor);
+      document.body.style.background = hexStringColor;
+      document.body.style.color = colorPicker.isDark() ? '#FFFFFF' : '#000000';
     });
 
-    document.getElementById('textColor').addEventListener('click', (e) => {
-      updateCounter({
-        type: 'TEXT',
-        payload: e.target.value,
-      });
-    });
+    // document.getElementById('textColor').addEventListener('click', (e) => {
+    //   updateColor({
+    //     type: 'TEXT',
+    //     payload: e.target.value,
+    //   });
+    // });
   }
 
-  function updateCounter({ type }) {
+  function updateColor({ type, payload }) {
     counterStorage.get((color) => {
       let newColor;
 
-      if (type === 'BACKGROUND') {
-        newColor = color + 1;
-      } else if (type === 'TEXT') {
-        newColor = color - 1;
-      } else {
-        newColor = color;
+      if (type === 'UPDATE') {
+        newColor = payload;
       }
+      // } else if (type === 'TEXT') {
+      //   newColor = color - 1;
+      // } else {
+      //   newColor = color;
+      // }
 
       counterStorage.set(newColor, () => {
-        document.getElementById('color').innerHTML = newColor;
+        document.getElementById(
+          'color'
+        ).innerHTML = `Current color: ${newColor}`;
 
         // Communicate with content script of
         // active tab by sending a message
@@ -88,27 +105,14 @@ import './popup.css';
     counterStorage.get((color) => {
       if (typeof color === 'undefined') {
         // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
+        counterStorage.set('color', () => {
+          setupColor('#8a2be2');
         });
       } else {
-        setupCounter(color);
+        setupColor(color);
       }
     });
   }
 
   document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    (response) => {
-      console.log(response.message);
-    }
-  );
 })();

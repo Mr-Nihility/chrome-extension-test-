@@ -18,8 +18,8 @@ html {
 }
 
 body {
-  width: 350px;
-  height: 300px;
+  width: 450px;
+  height: 500px;
 }
 
 .app {
@@ -33,9 +33,9 @@ body {
 }
 
 .title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .subtitle {
@@ -51,13 +51,9 @@ code {
 }
 
 .counter-label {
-  font-size: 12px;
-  margin-bottom: 5px;
-}
-
-.counter {
   font-size: 36px;
   font-weight: 700;
+  margin-bottom: 10px;
 }
 
 .button-container {
@@ -101,6 +97,30 @@ code {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* .color-picker-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
+.app .Scp-hue {
+  width: 14px;
+  height: 95%;
+  position: absolute;
+  left: 89%;
+  top: 3%;
+  background: linear-gradient(
+    red,
+    #f0f 17%,
+    #00f 34%,
+    #0ff 50%,
+    #0f0 67%,
+    #ff0 84%,
+    red
+  );
 }
 
 
