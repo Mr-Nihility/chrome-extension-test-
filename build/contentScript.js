@@ -643,7 +643,7 @@ class Handler {
     }px; left:${this.x}px; --color:${this.color}; --text:${
       colorPicker.setColor(this.color).isDark() ? 'aliceblue' : '#222'
     }" >
-    <p class="suggestiontext"> press first &#8592; or &#8593;, then &#8594;, &#8595; to choose word	</p>
+    <p class="suggestiontext"> press first &#8595; or &#8593;, then &#8594;, &#8592;  to choose word	</p>
     <div  class="suggestionBox">`;
 
     markup += arr
