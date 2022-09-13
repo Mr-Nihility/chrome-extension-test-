@@ -4,7 +4,7 @@ import Handler from './handler';
 import handleKeyboard from './keyboard';
 
 // Listen for message
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
   if (request.type === 'COLOR') {
     handler.setColor(request.payload.color);
   }
@@ -16,6 +16,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 export const handler = new Handler(); //instance
+
+chrome.storage.sync.get(['color'], (result) => {
+  handler.setColor(result.color);
+});
 
 const colectionInputs = [
   //colection
@@ -37,12 +41,12 @@ colectionInputs.forEach((node) => {
   }
 });
 
-// function getCoordinates(e) {}
-
 function handleInput(evt) {
   handler.setEl(evt.target);
+
   removeListener();
   handler.closePopup();
+
   if (evt.data !== ' ') {
     return;
   }
@@ -52,6 +56,7 @@ function handleInput(evt) {
   } else {
     handler.renderOptions(evt.target.value);
   }
+
   handleChoose(handler.returnPopupEl());
 }
 
@@ -62,14 +67,14 @@ function handleChoose(node) {
 
 function handleClickOnSpan(evt) {
   if (evt.currentTarget === evt.target) return;
-  handler.replaceWord(evt.target.textContent);
+  handler.replaceNodeValue(evt.target.textContent);
   removeListener();
   handler.closePopup();
 }
 
 function handleSelectionINP(event) {
   handler.setEl(event.target);
-  console.log(event.target.selectionStart, event.target.selectionEnd);
+
   const selection = event.target.value.substring(
     event.target.selectionStart,
     event.target.selectionEnd
@@ -90,17 +95,21 @@ function handleSelectionINP(event) {
 
 function handleSelectionContentEditableElement(evt) {
   handler.setEl(evt.target);
+
   const { anchorNode, anchorOffset, extentOffset } = document.getSelection();
+
   if (anchorOffset === extentOffset) return;
+
   handler.closePopup();
 
-  console.log(anchorOffset, extentOffset);
-  const selection = anchorNode.data?.slice(anchorOffset, extentOffset);
+  const start = anchorOffset > extentOffset ? extentOffset : anchorOffset;
+  const end = anchorOffset < extentOffset ? extentOffset : anchorOffset;
+  const selection = anchorNode.data?.slice(start, end);
 
   // //check
   if (selection.toLowerCase().trim() === 'test') return;
 
-  handler.renderOptions(selection, anchorOffset, extentOffset);
+  handler.renderOptions(selection.trim(), start, end);
   handleChoose(handler.returnPopupEl());
 }
 

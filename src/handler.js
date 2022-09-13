@@ -9,7 +9,6 @@ let dict = new spelling(dictionary);
 export default class Handler {
   constructor() {
     this.el = null;
-    this.suggestArr = null;
     this.wordForOptions = '';
     this.x = null;
     this.y = null;
@@ -39,73 +38,67 @@ export default class Handler {
 
     this.wordForOptions = arrWords && arrWords[arrWords.length - 1];
 
-    this.suggestArr = dict
+    const suggestArr = dict
       .search(this.wordForOptions, {
-        depth: 3,
+        depth: 6,
       })
       .map(({ word }) => word)
-      .slice(0, 4);
+      .slice(0, 5);
 
     //check
     if (this.wordForOptions.toLowerCase().trim() == 'test') return;
 
-    this.renderMarkup(this.suggestArr);
+    this.renderMarkup(suggestArr);
   }
+
   setColor(color) {
     this.color = color;
   }
+
   getWord() {
     return this.wordForOptions;
   }
 
-  // setSuggestArr() {
-  //   this.suggestArr = dict
-  //     .search(this.wordForOptions, {
-  //       depth: 1,
-  //     })
-  //     .map(({ word }) => word)
-  //     .slice(0, 4);
-  // }
-
-  replaceWord(selectedWord) {
-    let dif;
+  replaceNodeValue(selectedWord) {
+    let dif = 0;
     const arrWords = this.el.isContentEditable
       ? this.el.textContent.trim().split(' ')
       : this.el.value.trim().split(' ');
+    const strWords = this.el.isContentEditable
+      ? this.el.textContent
+      : this.el.value;
+    let res = '';
 
-    for (let i = 0; i < arrWords.length; i++) {
-      const word = arrWords[i].replace(/(\r\n|\n|\r)/gm, '').trim();
-
-      if (word === this.wordForOptions) {
-        let index = arrWords.lastIndexOf(arrWords[i]);
-        if (index !== -1) arrWords.splice(index, 1, selectedWord);
-        dif = selectedWord.length - word.length;
-        break;
-      }
-    }
-
-    if (this.el.isContentEditable) {
-      this.el.textContent = arrWords.join(' ');
+    if (this.selectionEnd && this.selectionEnd) {
+      res = this.cutStr(
+        strWords,
+        this.selectionStart,
+        this.selectionEnd,
+        selectedWord
+      );
+      dif = selectedWord.length - (this.selectionEnd - this.selectionStart);
     } else {
-      this.el.value = arrWords.join(' ');
+      const [str, df] = this.searchAndReplaceWord(arrWords, selectedWord);
+      res = str;
+      dif = df;
     }
 
     if (this.el.isContentEditable) {
+      this.el.textContent = res;
       setCurrentCursorPosition(
         this.el,
         this.selectionEnd ? this.selectionEnd + dif : this.el.textContent.length
       );
-
-      // this.el.focus();
     } else {
+      this.el.value = res;
       this.el.focus();
     }
   }
 
   renderMarkup(arr) {
-    let markup = `<div  class="suggestionWrap" style="top:${
+    let markup = `<div  class="suggestionWrap" style=" top:${
       this.y < 50 ? this.y + 40 : this.y - 40
-    }px;left:${this.x}px; --color:${this.color}; --text:${
+    }px; left:${this.x}px; --color:${this.color}; --text:${
       colorPicker.setColor(this.color).isDark() ? 'aliceblue' : '#222'
     }" >`;
 
@@ -116,6 +109,7 @@ export default class Handler {
       .join('');
 
     markup += `</div>`;
+
     this.el.insertAdjacentHTML('afterend', markup);
   }
 
@@ -130,8 +124,36 @@ export default class Handler {
   looseBlur() {
     this.el.blur();
   }
+
+  cutStr(str, start, end, word) {
+    const beforeStr = str.slice(0, start - 1);
+    const afterStr = str.slice(end);
+    const res = beforeStr.trim() + word + afterStr.trim();
+
+    return res;
+  }
+
+  searchAndReplaceWord(arrWords, selectedWord) {
+    let dif;
+    for (let i = 0; i < arrWords.length; i++) {
+      const word = arrWords[i].replace(/(\r\n|\n|\r)/gm, '').trim();
+
+      if (word === this.wordForOptions) {
+        let index = arrWords.lastIndexOf(arrWords[i]);
+        if (index !== -1) arrWords.splice(index, 1, selectedWord);
+        dif = selectedWord.length - word.length;
+        break;
+      }
+    }
+    return [arrWords.join(' '), dif];
+  }
 }
 
+/**
+ * helpers
+ * @param {Node, Object} node
+ * @param {NUMBER} chars
+ */
 function setCurrentCursorPosition(node, chars) {
   if (chars >= 0) {
     let selection = window.getSelection();
@@ -148,6 +170,13 @@ function setCurrentCursorPosition(node, chars) {
   }
 }
 
+/**
+ * helper
+ * @param {Node, Object} node
+ * @param {Number} chars
+ * @param {Object} range
+ * @returns
+ */
 function createRange(node, chars, range) {
   if (!range) {
     range = document.createRange();
@@ -166,8 +195,8 @@ function createRange(node, chars, range) {
         chars.count = 0;
       }
     } else {
-      for (let lp = 0; lp < node.childNodes.length; lp++) {
-        range = createRange(node.childNodes[lp], chars, range);
+      for (let i = 0; i < node.childNodes.length; i++) {
+        range = createRange(node.childNodes[i], chars, range);
 
         if (chars.count === 0) {
           break;

@@ -201,7 +201,7 @@ const colorPicker = new simple_color_picker__WEBPACK_IMPORTED_MODULE_1__["defaul
   // To get storage access, we have to mention it in `permissions` property of manifest.json file
   // More information on Permissions can we found at
   // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
+  const colorStorage = {
     get: (cb) => {
       chrome.storage.sync.get(['color'], (result) => {
         cb(result.color);
@@ -242,7 +242,7 @@ const colorPicker = new simple_color_picker__WEBPACK_IMPORTED_MODULE_1__["defaul
   }
 
   function updateColor({ type, payload }) {
-    counterStorage.get((color) => {
+    colorStorage.get((color) => {
       let newColor;
 
       if (type === 'UPDATE') {
@@ -254,7 +254,7 @@ const colorPicker = new simple_color_picker__WEBPACK_IMPORTED_MODULE_1__["defaul
       //   newColor = color;
       // }
 
-      counterStorage.set(newColor, () => {
+      colorStorage.set(newColor, () => {
         document.getElementById(
           'color'
         ).innerHTML = `Current color: ${newColor}`;
@@ -283,13 +283,15 @@ const colorPicker = new simple_color_picker__WEBPACK_IMPORTED_MODULE_1__["defaul
 
   function restoreCounter() {
     // Restore count value
-    counterStorage.get((color) => {
+    colorStorage.get((color) => {
+      console.log(color);
       if (typeof color === 'undefined') {
         // Set counter value as 0
-        counterStorage.set('color', () => {
+        colorStorage.set('color', () => {
           setupColor('#8a2be2');
         });
       } else {
+        colorPicker.setColor(color);
         setupColor(color);
       }
     });

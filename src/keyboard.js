@@ -1,7 +1,7 @@
 import { handler, removeListener } from './contentScript';
 
 export default function handleKeyboard(evt) {
-  let array = handler.returnPopupEl().childNodes;
+  let array = handler.returnPopupEl()?.childNodes;
   if (evt.keyCode === 38 || evt.keyCode === 40) {
     //up || down
     handler.looseBlur();
@@ -15,7 +15,7 @@ export default function handleKeyboard(evt) {
   } else if (evt.keyCode === 39) {
     handler.looseBlur();
     //rigth
-    let array = handler.returnPopupEl().childNodes;
+    // let array = handler.returnPopupEl().childNodes;
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== array.length - 1) {
@@ -27,7 +27,7 @@ export default function handleKeyboard(evt) {
   } else if (evt.keyCode === 37) {
     handler.looseBlur();
     //left
-    let array = handler.returnPopupEl().childNodes;
+    // let array = handler.returnPopupEl().childNodes;
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== 0) {
@@ -38,11 +38,10 @@ export default function handleKeyboard(evt) {
     }
   } else if (evt.keyCode === 13) {
     //enter
-    let array = handler.returnPopupEl().childNodes;
+    // let array = handler.returnPopupEl().childNodes;
     for (let i = 0; i < array.length; i++) {
       if (array[i].classList.contains('active')) {
-        console.log(array[i].textContent, handler.getWord());
-        handler.replaceWord(array[i].textContent);
+        handler.replaceNodeValue(array[i].textContent);
       }
     }
     removeListener();
