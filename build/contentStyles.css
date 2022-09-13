@@ -3,13 +3,14 @@
   --text:aliceblue;
   background-color: var(--text);
   display: flex;
-  gap: 10px;
+  flex-direction:column;
   position: fixed;
   top: 35%;
   left: 50%;
   transform: translate( -50%);
   border-radius: 6px;
   z-index:10000000000;
+  overflow:hidden ;
 }
 .itemSuggestionWrap{
    padding: 5px;
@@ -18,6 +19,7 @@
   transition: all 250px;
   cursor: pointer;
   border-radius: 4px;
+  font-size: 16px;
 }
 .itemSuggestionWrap:hover{
   color: var(--text);
@@ -26,4 +28,16 @@
 .itemSuggestionWrap.active{
   color: var(--text);
   background-color: var(--color);
+}
+
+.suggestionBox {
+  display: flex;
+  gap: 10px;
+}
+.suggestiontext {
+  background-color: var(--color);
+  color:var(--text);
+  font-size: 10px;
+  text-align: center;
+  padding: 2px;
 }

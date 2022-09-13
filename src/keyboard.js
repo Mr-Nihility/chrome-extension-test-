@@ -15,7 +15,7 @@ export default function handleKeyboard(evt) {
   } else if (evt.keyCode === 39) {
     handler.looseBlur();
     //rigth
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== array.length - 1) {
@@ -27,7 +27,7 @@ export default function handleKeyboard(evt) {
   } else if (evt.keyCode === 37) {
     handler.looseBlur();
     //left
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== 0) {
@@ -38,7 +38,7 @@ export default function handleKeyboard(evt) {
     }
   } else if (evt.keyCode === 13) {
     //enter
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       if (array[i].classList.contains('active')) {
         handler.replaceNodeValue(array[i].textContent);

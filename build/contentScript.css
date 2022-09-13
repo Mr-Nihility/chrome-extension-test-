@@ -1,0 +1,22 @@
+/*!*************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./src/contentStyles.css ***!
+  \*************************************************************************/
+.suggestionWrap {
+  background-color: aliceblue;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.suggestionBox {
+  display: flex;
+  gap: 10px;
+}
+.suggestiontext {
+  font-size: 12px;
+}
+/*  */
+
+
+/*# sourceMappingURL=contentScript.css.map*/

@@ -496,7 +496,7 @@ function handleSelectionINP(event) {
     event.target.selectionEnd
   );
 
-  handleChoose(handler.returnPopupEl());
+  handler.returnPopupEl() && handleChoose(handler.returnPopupEl());
 }
 
 function handleSelectionContentEditableElement(evt) {
@@ -516,7 +516,7 @@ function handleSelectionContentEditableElement(evt) {
   if (selection.toLowerCase().trim() === 'test') return;
 
   handler.renderOptions(selection.trim(), start, end);
-  handleChoose(handler.returnPopupEl());
+  handler.returnPopupEl() && handleChoose(handler.returnPopupEl());
 }
 
 function removeListener() {
@@ -637,11 +637,14 @@ class Handler {
   }
 
   renderMarkup(arr) {
+    if (!arr.length) return;
     let markup = `<div  class="suggestionWrap" style=" top:${
-      this.y < 50 ? this.y + 40 : this.y - 40
+      this.y < 50 ? this.y + 30 : this.y - 60
     }px; left:${this.x}px; --color:${this.color}; --text:${
       colorPicker.setColor(this.color).isDark() ? 'aliceblue' : '#222'
-    }" >`;
+    }" >
+    <p class="suggestiontext"> press &#8592;, &#8593;, &#8594;, &#8595; to choose	</p>
+    <div  class="suggestionBox">`;
 
     markup += arr
       .map((item) => {
@@ -649,7 +652,7 @@ class Handler {
       })
       .join('');
 
-    markup += `</div>`;
+    markup += `</div></div>`;
 
     this.el.insertAdjacentHTML('afterend', markup);
   }
@@ -659,7 +662,7 @@ class Handler {
   }
 
   returnPopupEl() {
-    return document.querySelector('.suggestionWrap');
+    return document.querySelector('.suggestionBox');
   }
 
   looseBlur() {
@@ -667,9 +670,9 @@ class Handler {
   }
 
   cutStr(str, start, end, word) {
-    const beforeStr = str.slice(0, start - 1);
+    const beforeStr = str.slice(0, start);
     const afterStr = str.slice(end);
-    const res = beforeStr.trim() + word + afterStr.trim();
+    const res = beforeStr + word + afterStr;
 
     return res;
   }
@@ -781,7 +784,7 @@ function handleKeyboard(evt) {
   } else if (evt.keyCode === 39) {
     _contentScript__WEBPACK_IMPORTED_MODULE_0__.handler.looseBlur();
     //rigth
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== array.length - 1) {
@@ -793,7 +796,7 @@ function handleKeyboard(evt) {
   } else if (evt.keyCode === 37) {
     _contentScript__WEBPACK_IMPORTED_MODULE_0__.handler.looseBlur();
     //left
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       const node = array[i];
       if (array[i].classList.contains('active') && i !== 0) {
@@ -804,7 +807,7 @@ function handleKeyboard(evt) {
     }
   } else if (evt.keyCode === 13) {
     //enter
-    // let array = handler.returnPopupEl().childNodes;
+
     for (let i = 0; i < array.length; i++) {
       if (array[i].classList.contains('active')) {
         _contentScript__WEBPACK_IMPORTED_MODULE_0__.handler.replaceNodeValue(array[i].textContent);

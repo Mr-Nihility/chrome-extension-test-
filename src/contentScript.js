@@ -90,7 +90,7 @@ function handleSelectionINP(event) {
     event.target.selectionEnd
   );
 
-  handleChoose(handler.returnPopupEl());
+  handler.returnPopupEl() && handleChoose(handler.returnPopupEl());
 }
 
 function handleSelectionContentEditableElement(evt) {
@@ -110,7 +110,7 @@ function handleSelectionContentEditableElement(evt) {
   if (selection.toLowerCase().trim() === 'test') return;
 
   handler.renderOptions(selection.trim(), start, end);
-  handleChoose(handler.returnPopupEl());
+  handler.returnPopupEl() && handleChoose(handler.returnPopupEl());
 }
 
 export function removeListener() {
